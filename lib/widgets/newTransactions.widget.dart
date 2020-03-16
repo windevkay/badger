@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class NewTransactions extends StatefulWidget {
   final Function addExpense;
@@ -9,22 +10,39 @@ class NewTransactions extends StatefulWidget {
 }
 
 class _NewTransactionsState extends State<NewTransactions> {
-  final expenseInputController = TextEditingController();
+  final _expenseInputController = TextEditingController();
+  final _amountInputController = TextEditingController();
+  DateTime _selectedDate;
 
-  final amountInputController = TextEditingController();
-
-  void submitData(){
-    final expenseInput = expenseInputController.text;
-    final amountInput = double.parse(amountInputController.text);
+  void _submitData() {
+    final expenseInput = _expenseInputController.text;
+    final amountInput = double.parse(_amountInputController.text);
     //quick validation here. Exit the function if values are not available
-    if(expenseInput.isEmpty || amountInput <= 0){
+    if (expenseInput.isEmpty || amountInput <= 0 || _selectedDate == null) {
       return;
     }
 
-    widget.addExpense(expenseInput, amountInput);
+    widget.addExpense(expenseInput, amountInput, _selectedDate);
 
     //close add expense modal once we are done
     Navigator.of(context).pop();
+  }
+
+  void _presentDatePicker() {
+    //inbuilt flutter widget
+    showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+    ).then((pickedDate) {
+      if (pickedDate == null) {
+        return;
+      }
+      setState(() {
+        _selectedDate = pickedDate;
+      });
+    });
   }
 
   @override
@@ -38,21 +56,43 @@ class _NewTransactionsState extends State<NewTransactions> {
               cursorColor: Colors.pink,
               decoration: InputDecoration(labelText: 'Expense name'),
               //onChanged: (value){expenseNameInput = value;},
-              controller: expenseInputController,
-              onSubmitted: (_) => submitData(),
+              controller: _expenseInputController,
+              onSubmitted: (_) => _submitData(),
             ),
             TextField(
               cursorColor: Colors.pink,
               decoration: InputDecoration(labelText: 'Amount spent'),
               //onChanged: (value){amountSpentInput = value;},
-              controller: amountInputController,
+              controller: _amountInputController,
               keyboardType: TextInputType.numberWithOptions(decimal: true),
-              onSubmitted: (_) => submitData(),
+              onSubmitted: (_) => _submitData(),
             ),
-            FlatButton(
-              onPressed: submitData,
+            Container(
+              height: 70,
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Text(
+                      _selectedDate == null
+                          ? 'No Date Selected'
+                          : 'Picked Date: ${DateFormat.yMd().format(_selectedDate)}',
+                    ),
+                  ),
+                  FlatButton(
+                    onPressed: _presentDatePicker,
+                    child: Text(
+                      'Choose Date',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    textColor: Theme.of(context).primaryColor,
+                  )
+                ],
+              ),
+            ),
+            RaisedButton(
+              onPressed: _submitData,
               child: Text('Save Expense'),
-              color: Colors.pink,
+              color: Theme.of(context).primaryColor,
               textColor: Colors.white,
             )
           ]),
