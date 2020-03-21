@@ -47,55 +47,62 @@ class _NewTransactionsState extends State<NewTransactions> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-        elevation: 5,
-        child: Container(
-          padding: EdgeInsets.all(10),
-          child: Column(children: <Widget>[
-            TextField(
-              cursorColor: Colors.pink,
-              decoration: InputDecoration(labelText: 'Expense name'),
-              //onChanged: (value){expenseNameInput = value;},
-              controller: _expenseInputController,
-              onSubmitted: (_) => _submitData(),
-            ),
-            TextField(
-              cursorColor: Colors.pink,
-              decoration: InputDecoration(labelText: 'Amount spent'),
-              //onChanged: (value){amountSpentInput = value;},
-              controller: _amountInputController,
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
-              onSubmitted: (_) => _submitData(),
-            ),
-            Container(
-              height: 70,
-              child: Row(
-                children: <Widget>[
-                  Expanded(
-                    child: Text(
-                      _selectedDate == null
-                          ? 'No Date Selected'
-                          : 'Picked Date: ${DateFormat.yMd().format(_selectedDate)}',
-                    ),
-                  ),
-                  FlatButton(
-                    onPressed: _presentDatePicker,
-                    child: Text(
-                      'Choose Date',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    textColor: Theme.of(context).primaryColor,
-                  )
-                ],
+    return SingleChildScrollView(
+      child: Card(
+          elevation: 5,
+          child: Container(
+            //the padding format here ensures we can scroll text fields above the keyboard
+            padding: EdgeInsets.only(
+                top: 10,
+                left: 10,
+                right: 10,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 10),
+            child: Column(children: <Widget>[
+              TextField(
+                cursorColor: Colors.pink,
+                decoration: InputDecoration(labelText: 'Expense name'),
+                //onChanged: (value){expenseNameInput = value;},
+                controller: _expenseInputController,
+                onSubmitted: (_) => _submitData(),
               ),
-            ),
-            RaisedButton(
-              onPressed: _submitData,
-              child: Text('Save Expense'),
-              color: Theme.of(context).primaryColor,
-              textColor: Colors.white,
-            )
-          ]),
-        ));
+              TextField(
+                cursorColor: Colors.pink,
+                decoration: InputDecoration(labelText: 'Amount spent'),
+                //onChanged: (value){amountSpentInput = value;},
+                controller: _amountInputController,
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                onSubmitted: (_) => _submitData(),
+              ),
+              Container(
+                height: 70,
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: Text(
+                        _selectedDate == null
+                            ? 'No Date Selected'
+                            : 'Picked Date: ${DateFormat.yMd().format(_selectedDate)}',
+                      ),
+                    ),
+                    FlatButton(
+                      onPressed: _presentDatePicker,
+                      child: Text(
+                        'Choose Date',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      textColor: Theme.of(context).primaryColor,
+                    )
+                  ],
+                ),
+              ),
+              RaisedButton(
+                onPressed: _submitData,
+                child: Text('Save Expense'),
+                color: Theme.of(context).primaryColor,
+                textColor: Colors.white,
+              )
+            ]),
+          )),
+    );
   }
 }
