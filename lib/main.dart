@@ -1,4 +1,7 @@
+import 'dart:io'; //to allow us detect what platform we are on
+
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 //import 'package:flutter/services.dart';
 
 import './widgets/transactionList.widget.dart';
@@ -107,39 +110,68 @@ class _MyHomePageState extends State<MyHomePage> {
     //general media query that we use
     final mediaQuery = MediaQuery.of(context);
     //to control views between landscape and portrait
-    final isLandscape =
-        mediaQuery.orientation == Orientation.landscape;
-
-    final appBar = AppBar(
-      //title: Text("Badger - Easy Budgets"),
-      title: RichText(
-        text: TextSpan(
-          text: 'Badger | ',
-          style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: Theme.of(context).accentColor,
-              fontFamily: 'Acme',
-              fontSize: 18),
-          children: <TextSpan>[
-            TextSpan(
-                text: 'Expense Tracker',
+    final isLandscape = mediaQuery.orientation == Orientation.landscape;
+    //we explicitly specify preferred size widget here to let the media queries down below to know a preferred size is available
+    final PreferredSizeWidget appBar = Platform.isIOS
+        ? CupertinoNavigationBar(
+            middle: RichText(
+              text: TextSpan(
+                text: 'Badger | ',
                 style: TextStyle(
-                    fontWeight: FontWeight.w300,
-                    color: Colors.white,
-                    fontFamily: 'Quicksand')),
-          ],
-        ),
-      ),
-      //backgroundColor: Colors.pink,
-      actions: <Widget>[
-        IconButton(
-            icon: Icon(
-              Icons.insert_invitation,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).accentColor,
+                    fontFamily: 'Acme',
+                    fontSize: 18),
+                children: <TextSpan>[
+                  TextSpan(
+                      text: 'Expense Tracker',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w300,
+                          color: Colors.white,
+                          fontFamily: 'Quicksand')),
+                ],
+              ),
             ),
-            color: Theme.of(context).accentColor,
-            onPressed: () => _addExpenseModal(context)),
-      ],
-    );
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                GestureDetector(
+                  child: Icon(CupertinoIcons.add_circled),
+                  onTap: () => _addExpenseModal(context),
+                )
+              ],
+            ),
+          )
+        : AppBar(
+            //title: Text("Badger - Easy Budgets"),
+            title: RichText(
+              text: TextSpan(
+                text: 'Badger | ',
+                style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).accentColor,
+                    fontFamily: 'Acme',
+                    fontSize: 18),
+                children: <TextSpan>[
+                  TextSpan(
+                      text: 'Expense Tracker',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w300,
+                          color: Colors.white,
+                          fontFamily: 'Quicksand')),
+                ],
+              ),
+            ),
+            //backgroundColor: Colors.pink,
+            actions: <Widget>[
+              IconButton(
+                  icon: Icon(
+                    Icons.insert_invitation,
+                  ),
+                  color: Theme.of(context).accentColor,
+                  onPressed: () => _addExpenseModal(context)),
+            ],
+          );
 
     //this is being stored as a var for conditional rendering purposes
     final txListWidget = Container(
@@ -149,61 +181,80 @@ class _MyHomePageState extends State<MyHomePage> {
             0.65,
         child: TransactionList(_userTransactions, _deleteTransaction));
 
-    return Scaffold(
-        appBar: appBar,
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: FloatingActionButton(
-          child: Icon(Icons.add),
-          onPressed: () => _addExpenseModal(context),
-          //backgroundColor: Colors.pink,
-        ), //where this is placed doesnt matter
-        body: SingleChildScrollView(
-          //allows us to scroll!
-          child: Column(
-            children: <Widget>[
-              //if here isnt meant to have a body, just renders the widget following it if true
-              if (isLandscape)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Text('Toggle View'),
-                    Switch(
-                      value: _showChart,
-                      onChanged: (val) {
-                        setState(() {
-                          //the val in switch gives us a boolean
-                          _showChart = val;
-                        });
-                      },
-                    ),
-                  ],
+    //page body for conditional rendering between ios and android
+    //wrapping the body in a safe area widget ensures in ios, we take notches into consideration
+    final pageBody = SafeArea(
+        child: SingleChildScrollView(
+      //allows us to scroll!
+      child: Column(
+        children: <Widget>[
+          //if here isnt meant to have a body, just renders the widget following it if true
+          if (isLandscape)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Text(
+                  'Toggle View',
+                  style: Theme.of(context).textTheme.title,
                 ),
-              if (!isLandscape)
-                Container(
+                Switch.adaptive(
+                  activeColor: Theme.of(context).accentColor,
+                  value: _showChart,
+                  onChanged: (val) {
+                    setState(() {
+                      //the val in switch gives us a boolean
+                      _showChart = val;
+                    });
+                  },
+                ),
+              ],
+            ),
+          if (!isLandscape)
+            Container(
+                //this is why we made appbar a variable, so we could access its height property
+                //media query helps us get the height of device screen
+                height: (mediaQuery.size.height -
+                        appBar.preferredSize.height -
+                        mediaQuery.padding.top) *
+                    0.25,
+                child: Chart(_recentTransactions)),
+
+          if (!isLandscape)
+            txListWidget,
+
+          if (isLandscape)
+            _showChart
+                ? Container(
                     //this is why we made appbar a variable, so we could access its height property
                     //media query helps us get the height of device screen
                     height: (mediaQuery.size.height -
                             appBar.preferredSize.height -
                             mediaQuery.padding.top) *
-                        0.25,
-                    child: Chart(_recentTransactions)),
+                        0.7,
+                    child: Chart(_recentTransactions))
+                : txListWidget
+        ],
+      ),
+    ));
 
-              if (!isLandscape)
-                txListWidget,
-
-              if (isLandscape)
-                _showChart
-                    ? Container(
-                        //this is why we made appbar a variable, so we could access its height property
-                        //media query helps us get the height of device screen
-                        height: (mediaQuery.size.height -
-                                appBar.preferredSize.height -
-                                mediaQuery.padding.top) *
-                            0.7,
-                        child: Chart(_recentTransactions))
-                    : txListWidget
-            ],
-          ),
-        ));
+    return Platform.isIOS
+        ? CupertinoPageScaffold(
+            child: pageBody,
+            navigationBar: appBar,
+          )
+        : Scaffold(
+            appBar: appBar,
+            body: pageBody,
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.centerFloat,
+            //if we are on ios, we dont wanna render the floating button
+            floatingActionButton: Platform.isIOS
+                ? Container()
+                : FloatingActionButton(
+                    child: Icon(Icons.add),
+                    onPressed: () => _addExpenseModal(context),
+                    //backgroundColor: Colors.pink,
+                  ), //where this is placed doesnt matter
+          );
   }
 }
