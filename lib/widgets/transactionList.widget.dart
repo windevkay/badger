@@ -14,7 +14,7 @@ class TransactionList extends StatelessWidget {
         ? LayoutBuilder(builder: (ctx, constraints) {
             return Column(children: <Widget>[
               Text('No transactions yet! Add an expense.',
-                  style: Theme.of(context).textTheme.title),
+                  style: Theme.of(context).textTheme.headline6),
               SizedBox(
                 height: 30,
               ), //spacer!
@@ -83,7 +83,7 @@ class TransactionList extends StatelessWidget {
                   ),
                   title: Text(
                     userTransactions[index].title,
-                    style: Theme.of(context).textTheme.title,
+                    style: Theme.of(context).textTheme.headline6,
                   ),
                   subtitle: Text(
                     DateFormat.yMMMd().format(userTransactions[index].date),
